@@ -122,6 +122,61 @@ type ClusterOptions struct {
 	// AdmissionControllerOptions defines the properties that define supported admission controllers.
 	// +optional
 	AdmissionControllerOptions *AdmissionControllerOptions `json:"admissionControllerOptions,omitempty"`
+
+	// OpenIDConnectDiscovery specifies OIDC discovery settings
+	// +optional
+	OpenIDConnectDiscovery *OpenIDConnectDiscovery `json:"openIdConnectDiscovery,omitempty"`
+
+	//OpenIDConnectTokenAuthenticationConfig
+	// +optional
+	OpenIDConnectTokenAuthenticationConfig *OpenIDConnectTokenAuthenticationConfig `json:"openIdConnectTokenAuthenticationConfig,omitempty"`
+}
+
+type OpenIDConnectDiscovery struct {
+	// IsOpenIDConnectDiscoveryEnabled defines whether or not to enable the OIDC discovery.
+	// +optional
+	IsOpenIDConnectDiscoveryEnabled *bool `json:"isOpenIDConnectDiscoveryEnabled,omitempty"`
+}
+
+type OpenIDConnectTokenAuthenticationConfig struct {
+	// A Base64 encoded public RSA or ECDSA certificates used to sign your identity provider's web certificate.
+	// +optional
+	CaCertificate *string `json:"caCertificate,omitempty"`
+
+	// A client id that all tokens must be issued for.
+	// +optional
+	ClientId *string `json:"clientId,omitempty"`
+
+	// JWT claim to use as the user's group. If the claim is present it must be an array of strings.
+	// +optional
+	GroupsClaim *string `json:"groupsClaim,omitempty"`
+
+	// Prefix prepended to group claims to prevent clashes with existing names (such as system:groups).
+	// +optional
+	GroupsPrefix *string `json:"groupsPrefix,omitempty"`
+
+	// IsOpenIdConnectAuthEnabled defines whether or not to enable the OIDC authentication.
+	IsOpenIdConnectAuthEnabled bool `json:"isOpenIdConnectAuthEnabled"`
+
+	// URL of the provider that allows the API server to discover public signing keys. Only URLs that use the https:// scheme are accepted. This is typically the provider's discovery URL, changed to have an empty path.
+	// +optional
+	IssuerUrl *string `json:"issuerUrl,omitempty"`
+
+	// A key=value pair that describes a required claim in the ID Token. If set, the claim is verified to be present in the ID Token with a matching value. Repeat this flag to specify multiple claims.
+	// +optional
+	RequiredClaims map[string]string `json:"requiredClaims,omitempty"`
+
+	// The signing algorithms accepted. Default is ["RS256"].
+	// +optional
+	SigningAlgorithms []string `json:"signingAlgorithms,omitempty"`
+
+	// JWT claim to use as the user name. By default sub, which is expected to be a unique identifier of the end user. Admins can choose other claims, such as email or name, depending on their provider. However, claims other than email will be prefixed with the issuer URL to prevent naming clashes with other plugins.
+	// +optional
+	UsernameClaim *string `json:"usernameClaim,omitempty"`
+
+	// Prefix prepended to username claims to prevent clashes with existing names (such as system:users). For example, the value oidc: will create usernames like oidc:jane.doe. If this flag isn't provided and --oidc-username-claim is a value other than email the prefix defaults to ( Issuer URL )# where ( Issuer URL ) is the value of --oidc-issuer-url. The value - can be used to disable all prefixing.
+	// +optional
+	UsernamePrefix *string `json:"usernamePrefix,omitempty"`
 }
 
 // AddOnOptions defines the properties that define options for supported add-ons.

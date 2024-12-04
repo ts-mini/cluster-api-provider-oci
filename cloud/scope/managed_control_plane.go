@@ -144,6 +144,9 @@ func (s *ManagedControlPlaneScope) GetOrCreateControlPlane(ctx context.Context) 
 			FreeformTags: s.getFreeFormTags(),
 			DefinedTags:  s.getDefinedTags(),
 		},
+		OpenIdConnectDiscovery: &oke.OpenIdConnectDiscovery{
+			IsOpenIdConnectDiscoveryEnabled: controlPlaneSpec.ClusterOption.OpenIDConnectDiscovery.IsOpenIDConnectDiscoveryEnabled,
+		},
 	}
 	if s.Cluster.Spec.ClusterNetwork != nil {
 		networkConfig := oke.KubernetesNetworkConfig{}
@@ -621,6 +624,11 @@ func (s *ManagedControlPlaneScope) UpdateControlPlane(ctx context.Context, okeCl
 		if controlPlaneSpec.ClusterOption.AdmissionControllerOptions != nil {
 			updateOptions.AdmissionControllerOptions = &oke.AdmissionControllerOptions{
 				IsPodSecurityPolicyEnabled: controlPlaneSpec.ClusterOption.AdmissionControllerOptions.IsPodSecurityPolicyEnabled,
+			}
+		}
+		if controlPlaneSpec.ClusterOption.OpenIDConnectDiscovery != nil {
+			updateOptions.OpenIdConnectDiscovery = &oke.OpenIdConnectDiscovery{
+				IsOpenIdConnectDiscoveryEnabled: controlPlaneSpec.ClusterOption.OpenIDConnectDiscovery.IsOpenIDConnectDiscoveryEnabled,
 			}
 		}
 		details := oke.UpdateClusterDetails{
