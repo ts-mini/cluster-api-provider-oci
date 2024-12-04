@@ -180,6 +180,7 @@ type OpenIDConnectTokenAuthenticationConfig struct {
 	UsernamePrefix *string `json:"usernamePrefix,omitempty"`
 }
 
+// KeyValue defines the properties that define a key value pair. This is alias to containerengine.KeyValue, to support the sdk type
 type KeyValue containerengine.KeyValue
 
 // AddOnOptions defines the properties that define options for supported add-ons.
