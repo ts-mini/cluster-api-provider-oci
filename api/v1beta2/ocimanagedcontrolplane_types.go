@@ -17,6 +17,7 @@ limitations under the License.
 package v1beta2
 
 import (
+	"github.com/oracle/oci-go-sdk/v65/containerengine"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	clusterv1 "sigs.k8s.io/cluster-api/api/v1beta1"
 )
@@ -125,17 +126,17 @@ type ClusterOptions struct {
 
 	// OpenIDConnectDiscovery specifies OIDC discovery settings
 	// +optional
-	OpenIDConnectDiscovery *OpenIDConnectDiscovery `json:"openIdConnectDiscovery,omitempty"`
+	OpenIdConnectDiscovery *OpenIDConnectDiscovery `json:"openIdConnectDiscovery,omitempty"`
 
 	//OpenIDConnectTokenAuthenticationConfig
 	// +optional
-	OpenIDConnectTokenAuthenticationConfig *OpenIDConnectTokenAuthenticationConfig `json:"openIdConnectTokenAuthenticationConfig,omitempty"`
+	OpenIdConnectTokenAuthenticationConfig *OpenIDConnectTokenAuthenticationConfig `json:"openIdConnectTokenAuthenticationConfig,omitempty"`
 }
 
 type OpenIDConnectDiscovery struct {
 	// IsOpenIDConnectDiscoveryEnabled defines whether or not to enable the OIDC discovery.
 	// +optional
-	IsOpenIDConnectDiscoveryEnabled *bool `json:"isOpenIDConnectDiscoveryEnabled,omitempty"`
+	IsOpenIdConnectDiscoveryEnabled *bool `json:"isOpenIdConnectDiscoveryEnabled,omitempty"`
 }
 
 type OpenIDConnectTokenAuthenticationConfig struct {
@@ -164,7 +165,7 @@ type OpenIDConnectTokenAuthenticationConfig struct {
 
 	// A key=value pair that describes a required claim in the ID Token. If set, the claim is verified to be present in the ID Token with a matching value. Repeat this flag to specify multiple claims.
 	// +optional
-	RequiredClaims map[string]string `json:"requiredClaims,omitempty"`
+	RequiredClaims []KeyValue `json:"requiredClaims,omitempty"`
 
 	// The signing algorithms accepted. Default is ["RS256"].
 	// +optional
@@ -178,6 +179,8 @@ type OpenIDConnectTokenAuthenticationConfig struct {
 	// +optional
 	UsernamePrefix *string `json:"usernamePrefix,omitempty"`
 }
+
+type KeyValue containerengine.KeyValue
 
 // AddOnOptions defines the properties that define options for supported add-ons.
 type AddOnOptions struct {

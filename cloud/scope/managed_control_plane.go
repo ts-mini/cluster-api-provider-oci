@@ -144,9 +144,6 @@ func (s *ManagedControlPlaneScope) GetOrCreateControlPlane(ctx context.Context) 
 			FreeformTags: s.getFreeFormTags(),
 			DefinedTags:  s.getDefinedTags(),
 		},
-		OpenIdConnectDiscovery: &oke.OpenIdConnectDiscovery{
-			IsOpenIdConnectDiscoveryEnabled: controlPlaneSpec.ClusterOption.OpenIDConnectDiscovery.IsOpenIDConnectDiscoveryEnabled,
-		},
 	}
 	if s.Cluster.Spec.ClusterNetwork != nil {
 		networkConfig := oke.KubernetesNetworkConfig{}
@@ -161,6 +158,52 @@ func (s *ManagedControlPlaneScope) GetOrCreateControlPlane(ctx context.Context) 
 			}
 		}
 		createOptions.KubernetesNetworkConfig = &networkConfig
+	}
+
+	if controlPlaneSpec.ClusterOption.OpenIdConnectDiscovery != nil {
+		createOptions.OpenIdConnectDiscovery = &oke.OpenIdConnectDiscovery{
+			IsOpenIdConnectDiscoveryEnabled: controlPlaneSpec.ClusterOption.OpenIdConnectDiscovery.IsOpenIdConnectDiscoveryEnabled,
+		}
+	}
+
+	if controlPlaneSpec.ClusterOption.OpenIdConnectTokenAuthenticationConfig != nil {
+		oidcConfig := controlPlaneSpec.ClusterOption.OpenIdConnectTokenAuthenticationConfig
+		createOptions.OpenIdConnectTokenAuthenticationConfig = &oke.OpenIdConnectTokenAuthenticationConfig{
+			IsOpenIdConnectAuthEnabled: &oidcConfig.IsOpenIdConnectAuthEnabled,
+		}
+
+		if oidcConfig.IssuerUrl != nil {
+			createOptions.OpenIdConnectTokenAuthenticationConfig.IssuerUrl = oidcConfig.IssuerUrl
+		}
+		if oidcConfig.ClientId != nil {
+			createOptions.OpenIdConnectTokenAuthenticationConfig.ClientId = oidcConfig.ClientId
+		}
+		if oidcConfig.UsernameClaim != nil {
+			createOptions.OpenIdConnectTokenAuthenticationConfig.UsernameClaim = oidcConfig.UsernameClaim
+		}
+		if oidcConfig.UsernamePrefix != nil {
+			createOptions.OpenIdConnectTokenAuthenticationConfig.UsernamePrefix = oidcConfig.UsernamePrefix
+		}
+		if oidcConfig.GroupsClaim != nil {
+			createOptions.OpenIdConnectTokenAuthenticationConfig.GroupsClaim = oidcConfig.GroupsClaim
+		}
+		if oidcConfig.GroupsPrefix != nil {
+			createOptions.OpenIdConnectTokenAuthenticationConfig.GroupsPrefix = oidcConfig.GroupsPrefix
+		}
+		if oidcConfig.RequiredClaims != nil {
+			// Convert []infrastructurev1beta2.KeyValue to []containerengine.KeyValue
+			requiredClaims := make([]oke.KeyValue, len(oidcConfig.RequiredClaims))
+			for i, rc := range oidcConfig.RequiredClaims {
+				requiredClaims[i] = oke.KeyValue(rc)
+			}
+			createOptions.OpenIdConnectTokenAuthenticationConfig.RequiredClaims = requiredClaims
+		}
+		if oidcConfig.CaCertificate != nil {
+			createOptions.OpenIdConnectTokenAuthenticationConfig.CaCertificate = oidcConfig.CaCertificate
+		}
+		if oidcConfig.SigningAlgorithms != nil {
+			createOptions.OpenIdConnectTokenAuthenticationConfig.SigningAlgorithms = oidcConfig.SigningAlgorithms
+		}
 	}
 
 	if controlPlaneSpec.ClusterOption.AddOnOptions != nil {
@@ -626,10 +669,52 @@ func (s *ManagedControlPlaneScope) UpdateControlPlane(ctx context.Context, okeCl
 				IsPodSecurityPolicyEnabled: controlPlaneSpec.ClusterOption.AdmissionControllerOptions.IsPodSecurityPolicyEnabled,
 			}
 		}
-		if controlPlaneSpec.ClusterOption.OpenIDConnectDiscovery != nil {
+		if controlPlaneSpec.ClusterOption.OpenIdConnectDiscovery != nil {
 			updateOptions.OpenIdConnectDiscovery = &oke.OpenIdConnectDiscovery{
-				IsOpenIdConnectDiscoveryEnabled: controlPlaneSpec.ClusterOption.OpenIDConnectDiscovery.IsOpenIDConnectDiscoveryEnabled,
+				IsOpenIdConnectDiscoveryEnabled: controlPlaneSpec.ClusterOption.OpenIdConnectDiscovery.IsOpenIdConnectDiscoveryEnabled,
 			}
+		}
+		if controlPlaneSpec.ClusterOption.OpenIdConnectTokenAuthenticationConfig != nil {
+			s.Logger.Info("Updating OIDC Connect Token config")
+			oidcConfig := controlPlaneSpec.ClusterOption.OpenIdConnectTokenAuthenticationConfig
+			updateOptions.OpenIdConnectTokenAuthenticationConfig = &oke.OpenIdConnectTokenAuthenticationConfig{
+				IsOpenIdConnectAuthEnabled: &oidcConfig.IsOpenIdConnectAuthEnabled,
+			}
+
+			if oidcConfig.IssuerUrl != nil {
+				updateOptions.OpenIdConnectTokenAuthenticationConfig.IssuerUrl = oidcConfig.IssuerUrl
+			}
+			if oidcConfig.ClientId != nil {
+				updateOptions.OpenIdConnectTokenAuthenticationConfig.ClientId = oidcConfig.ClientId
+			}
+			if oidcConfig.UsernameClaim != nil {
+				updateOptions.OpenIdConnectTokenAuthenticationConfig.UsernameClaim = oidcConfig.UsernameClaim
+			}
+			if oidcConfig.UsernamePrefix != nil {
+				updateOptions.OpenIdConnectTokenAuthenticationConfig.UsernamePrefix = oidcConfig.UsernamePrefix
+			}
+			if oidcConfig.GroupsClaim != nil {
+				updateOptions.OpenIdConnectTokenAuthenticationConfig.GroupsClaim = oidcConfig.GroupsClaim
+			}
+			if oidcConfig.GroupsPrefix != nil {
+				updateOptions.OpenIdConnectTokenAuthenticationConfig.GroupsPrefix = oidcConfig.GroupsPrefix
+			}
+			if oidcConfig.RequiredClaims != nil {
+				// Convert []infrastructurev1beta2.KeyValue to []containerengine.KeyValue
+				requiredClaims := make([]oke.KeyValue, len(oidcConfig.RequiredClaims))
+				for i, rc := range oidcConfig.RequiredClaims {
+					requiredClaims[i] = oke.KeyValue(rc)
+				}
+				updateOptions.OpenIdConnectTokenAuthenticationConfig.RequiredClaims = requiredClaims
+			}
+			if oidcConfig.CaCertificate != nil {
+				updateOptions.OpenIdConnectTokenAuthenticationConfig.CaCertificate = oidcConfig.CaCertificate
+			}
+			if oidcConfig.SigningAlgorithms != nil {
+				updateOptions.OpenIdConnectTokenAuthenticationConfig.SigningAlgorithms = oidcConfig.SigningAlgorithms
+			}
+
+			s.Logger.Info("Updated OIDC Connect Token config", "config", updateOptions.OpenIdConnectTokenAuthenticationConfig)
 		}
 		details := oke.UpdateClusterDetails{
 			Name:              common.String(s.GetClusterName()),
@@ -733,6 +818,30 @@ func (s *ManagedControlPlaneScope) getSpecFromActual(cluster *oke.Cluster) *infr
 			spec.ClusterOption.AddOnOptions = &infrastructurev1beta2.AddOnOptions{
 				IsTillerEnabled:              cluster.Options.AddOns.IsTillerEnabled,
 				IsKubernetesDashboardEnabled: cluster.Options.AddOns.IsKubernetesDashboardEnabled,
+			}
+		}
+		if cluster.Options.OpenIdConnectDiscovery != nil {
+			spec.ClusterOption.OpenIdConnectDiscovery = &infrastructurev1beta2.OpenIDConnectDiscovery{
+				IsOpenIdConnectDiscoveryEnabled: cluster.Options.OpenIdConnectDiscovery.IsOpenIdConnectDiscoveryEnabled,
+			}
+		}
+		if cluster.Options.OpenIdConnectTokenAuthenticationConfig != nil {
+			oidcConfig := cluster.Options.OpenIdConnectTokenAuthenticationConfig
+			requiredClaims := make([]infrastructurev1beta2.KeyValue, len(oidcConfig.RequiredClaims))
+			for i, rc := range oidcConfig.RequiredClaims {
+				requiredClaims[i] = infrastructurev1beta2.KeyValue(rc)
+			}
+			spec.ClusterOption.OpenIdConnectTokenAuthenticationConfig = &infrastructurev1beta2.OpenIDConnectTokenAuthenticationConfig{
+				IsOpenIdConnectAuthEnabled: *oidcConfig.IsOpenIdConnectAuthEnabled,
+				IssuerUrl:                  oidcConfig.IssuerUrl,
+				ClientId:                   oidcConfig.ClientId,
+				UsernameClaim:              oidcConfig.UsernameClaim,
+				UsernamePrefix:             oidcConfig.UsernamePrefix,
+				GroupsClaim:                oidcConfig.GroupsClaim,
+				GroupsPrefix:               oidcConfig.GroupsPrefix,
+				RequiredClaims:             requiredClaims,
+				CaCertificate:              oidcConfig.CaCertificate,
+				SigningAlgorithms:          oidcConfig.SigningAlgorithms,
 			}
 		}
 	}
