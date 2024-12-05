@@ -1,4 +1,3 @@
-
 #!/bin/bash
 # Copyright 2021 The Kubernetes Authors.
 #
@@ -16,7 +15,7 @@
 
 set -o errexit
 set -o nounset
-set -o pipefail
+# set -o pipefail
 
 root=$(dirname "${BASH_SOURCE[0]}")
 $root/tools/bin/kustomize build $1 | $root/tools/bin/envsubst
