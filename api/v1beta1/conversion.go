@@ -145,9 +145,5 @@ func Convert_v1beta2_OCIManagedClusterSpec_To_v1beta1_OCIManagedClusterSpec(in *
 
 // Convert_v1beta2_ClusterOptions_To_v1beta1_ClusterOptions converts v1beta2 ClusterOptions to v1beta1 ClusterOptions
 func Convert_v1beta2_ClusterOptions_To_v1beta1_ClusterOptions(in *v1beta2.ClusterOptions, out *ClusterOptions, s conversion.Scope) error {
-	if err := autoConvert_v1beta2_ClusterOptions_To_v1beta1_ClusterOptions(in, out, s); err != nil {
-		return err
-	}
-	// OpenIDConnectDiscovery does not exist in v1beta1
-	return nil
+	return autoConvert_v1beta2_ClusterOptions_To_v1beta1_ClusterOptions(in, out, s)
 }

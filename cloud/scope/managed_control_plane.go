@@ -19,13 +19,14 @@ package scope
 import (
 	"context"
 	"encoding/base64"
-	"encoding/json"
 	"fmt"
 	"io"
 	"reflect"
 	"strings"
 
 	"github.com/go-logr/logr"
+	"github.com/google/go-cmp/cmp"
+	"github.com/google/go-cmp/cmp/cmpopts"
 	infrastructurev1beta2 "github.com/oracle/cluster-api-provider-oci/api/v1beta2"
 	"github.com/oracle/cluster-api-provider-oci/cloud/ociutil"
 	baseclient "github.com/oracle/cluster-api-provider-oci/cloud/services/base"
@@ -651,17 +652,8 @@ func (s *ManagedControlPlaneScope) UpdateControlPlane(ctx context.Context, okeCl
 	setControlPlaneSpecDefaults(spec)
 
 	actual := s.getSpecFromActual(okeCluster)
-	if !reflect.DeepEqual(spec, actual) {
-		// printing json specs will help debug problems when there are spurious/unwanted updates
-		jsonSpec, err := json.Marshal(*spec)
-		if err != nil {
-			return false, err
-		}
-		jsonActual, err := json.Marshal(*actual)
-		if err != nil {
-			return false, err
-		}
-		s.Logger.Info("Control plane", "spec", jsonSpec, "actual", jsonActual)
+	// Log the actual and desired specs
+	if !s.compareSpecs(spec, actual) {
 		controlPlaneSpec := s.OCIManagedControlPlane.Spec
 		updateOptions := oke.UpdateClusterOptionsDetails{}
 		if controlPlaneSpec.ClusterOption.AdmissionControllerOptions != nil {
@@ -733,7 +725,7 @@ func (s *ManagedControlPlaneScope) UpdateControlPlane(ctx context.Context, okeCl
 			ClusterId:            okeCluster.Id,
 			UpdateClusterDetails: details,
 		}
-		_, err = s.ContainerEngineClient.UpdateCluster(ctx, updateClusterRequest)
+		_, err := s.ContainerEngineClient.UpdateCluster(ctx, updateClusterRequest)
 		if err != nil {
 			return false, errors.Wrapf(err, "failed to update cluster")
 		}
@@ -744,6 +736,21 @@ func (s *ManagedControlPlaneScope) UpdateControlPlane(ctx context.Context, okeCl
 		s.Info("No reconciliation needed for control plane")
 	}
 	return false, nil
+}
+
+// compareSpecs compares two OCIManagedControlPlaneSpec objects for equality
+func (s *ManagedControlPlaneScope) compareSpecs(spec1, spec2 *infrastructurev1beta2.OCIManagedControlPlaneSpec) bool {
+	if spec1 == nil || spec2 == nil {
+		return spec1 == spec2
+	}
+
+	// Use go-cmp to compare the specs
+	equal := cmp.Equal(spec1, spec2, cmpopts.EquateEmpty())
+	if !equal {
+		diff := cmp.Diff(spec1, spec2, cmpopts.EquateEmpty())
+		s.Logger.Info("Specs are different", "diff", diff)
+	}
+	return equal
 }
 
 // setControlPlaneSpecDefaults sets the defaults in the spec as returned by OKE API. We need to set defaults here rather than webhook as well as
