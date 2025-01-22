@@ -17,6 +17,8 @@ limitations under the License.
 package scope
 
 import (
+	"slices"
+
 	infrastructurev1beta2 "github.com/oracle/cluster-api-provider-oci/api/v1beta2"
 )
 
@@ -29,21 +31,21 @@ func GetNsgNamesFromId(ids []string, nsgs []*infrastructurev1beta2.NSG) []string
 	if len(ids) == 0 {
 		return nil
 	}
+
 	names := make([]string, 0)
-	for _, id := range ids {
-		for _, nsg := range nsgs {
-			if id == *nsg.ID {
-				names = append(names, nsg.Name)
-			}
+	for _, nsg := range nsgs {
+		if nsg.ID != nil && slices.Contains(ids, *nsg.ID) {
+			names = append(names, nsg.Name)
 		}
 	}
+
 	return names
 }
 
 // GetSubnetNameFromId returns the name of the Subnet with the provided ID
 func GetSubnetNameFromId(id *string, subnets []*infrastructurev1beta2.Subnet) string {
 	for _, subnet := range subnets {
-		if *id == *subnet.ID {
+		if subnet.ID != nil && *id == *subnet.ID {
 			return subnet.Name
 		}
 	}
@@ -53,11 +55,10 @@ func GetSubnetNameFromId(id *string, subnets []*infrastructurev1beta2.Subnet) st
 // GetSubnetNamesFromId returns the names of the Subnets with the provided IDs
 func GetSubnetNamesFromId(ids []string, subnets []*infrastructurev1beta2.Subnet) []string {
 	names := make([]string, 0)
-	for _, id := range ids {
-		for _, subnet := range subnets {
-			if id == *subnet.ID {
-				names = append(names, subnet.Name)
-			}
+
+	for _, subnet := range subnets {
+		if subnet.ID != nil && slices.Contains(ids, *subnet.ID) {
+			names = append(names, subnet.Name)
 		}
 	}
 	return names
