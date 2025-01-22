@@ -497,7 +497,7 @@ func (m *ManagedMachinePoolScope) getWorkerMachineNSGs() []string {
 	if len(specNsgNames) > 0 {
 		for _, nsgName := range specNsgNames {
 			for _, nsg := range m.OCIManagedCluster.Spec.NetworkSpec.Vcn.NetworkSecurityGroup.List {
-				if nsg.Name == nsgName {
+				if nsg.Name == nsgName && nsg.ID != nil {
 					nsgList = append(nsgList, *nsg.ID)
 				}
 			}
