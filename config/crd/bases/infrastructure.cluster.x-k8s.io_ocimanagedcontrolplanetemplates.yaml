@@ -299,8 +299,9 @@ spec:
                                   to be present in the ID Token with a matching value.
                                   Repeat this flag to specify multiple claims.
                                 items:
-                                  description: KeyValue The properties that define
-                                    a key value pair.
+                                  description: KeyValue defines the properties that
+                                    define a key value pair. This is alias to containerengine.KeyValue,
+                                    to support the sdk type
                                   properties:
                                     key:
                                       description: The key of the pair.
