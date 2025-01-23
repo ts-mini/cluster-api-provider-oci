@@ -25,6 +25,7 @@ import (
 // ConvertTo converts the v1beta1 OCIManagedCluster receiver to a v1beta2 OCIManagedCluster.
 func (src *OCIManagedControlPlane) ConvertTo(dstRaw conversion.Hub) error {
 	dst := dstRaw.(*v1beta2.OCIManagedControlPlane)
+
 	if err := Convert_v1beta1_OCIManagedControlPlane_To_v1beta2_OCIManagedControlPlane(src, dst, nil); err != nil {
 		return err
 	}
@@ -36,6 +37,9 @@ func (src *OCIManagedControlPlane) ConvertTo(dstRaw conversion.Hub) error {
 	dst.Spec.ClusterType = restored.Spec.ClusterType
 	dst.Spec.Addons = restored.Spec.Addons
 	dst.Status.AddonStatus = restored.Status.AddonStatus
+	dst.Spec.ClusterOption.OpenIdConnectDiscovery = restored.Spec.ClusterOption.OpenIdConnectDiscovery
+	dst.Spec.ClusterOption.OpenIdConnectTokenAuthenticationConfig = restored.Spec.ClusterOption.OpenIdConnectTokenAuthenticationConfig
+
 	return nil
 }
 
