@@ -62,6 +62,21 @@ func Test_GetNsgNamesFromId(t *testing.T) {
 			expected: []string{"test-1", "test-2"},
 		},
 		{
+			name: "nil ID",
+			ids:  []string{"id-2"},
+			nsgs: []*infrastructurev1beta2.NSG{
+				{
+					ID:   nil,
+					Name: "test-1",
+				},
+				{
+					ID:   common.String("id-2"),
+					Name: "test-2",
+				},
+			},
+			expected: []string{"test-2"},
+		},
+		{
 			name: "none",
 			ids:  []string{"id-3"},
 			nsgs: []*infrastructurev1beta2.NSG{
@@ -107,6 +122,21 @@ func Test_GetSubnetNameFromId(t *testing.T) {
 				},
 			},
 			expected: "test-1",
+		},
+		{
+			name: "nil ID",
+			id:   "id-1",
+			nsgs: []*infrastructurev1beta2.Subnet{
+				{
+					ID:   nil,
+					Name: "test-1",
+				},
+				{
+					ID:   common.String("id-2"),
+					Name: "test-2",
+				},
+			},
+			expected: "",
 		},
 		{
 			name: "none",
@@ -169,6 +199,21 @@ func Test_GetSubnetNamesFromId(t *testing.T) {
 				},
 			},
 			expected: []string{"test-1", "test-2"},
+		},
+		{
+			name: "nil ID",
+			ids:  []string{"id-1", "id-2"},
+			subnets: []*infrastructurev1beta2.Subnet{
+				{
+					ID:   nil,
+					Name: "test-1",
+				},
+				{
+					ID:   common.String("id-2"),
+					Name: "test-2",
+				},
+			},
+			expected: []string{"test-2"},
 		},
 		{
 			name: "none",
